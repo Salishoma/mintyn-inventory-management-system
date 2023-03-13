@@ -4,7 +4,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
 import jakarta.transaction.Transactional;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.mintyn.inventory.response.exception.ApiResourceNotFoundException;
 import org.mintyn.sales.inventory.salesinventory.dto.requestdto.CreateProductRequest;
 import org.mintyn.sales.inventory.salesinventory.dto.requestdto.ProductRequest;
@@ -18,7 +18,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.util.List;
 
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Service
 @Transactional
 public class ProductServiceImpl implements ProductService {
@@ -47,7 +47,7 @@ public class ProductServiceImpl implements ProductService {
     public List<ProductResponse> findAllProducts() {
         TypedQuery<ProductResponse> query = entityManager.createQuery("SELECT new org.mintyn.sales.inventory.salesinventory" +
                 ".dto.responsedto.ProductResponse(p.id, p.productName, p.price, p.productQuantity, p.description) " +
-                "FROM Product p", ProductResponse.class);
+                "FROM Product p order by p.id asc ", ProductResponse.class);
         return query.getResultList();
     }
 

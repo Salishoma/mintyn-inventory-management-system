@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface OrderService {
     OrderItemResponse orderProduct(long productId, OrderRequest request);
-    OrderItemResponse removeOrderedIem(long orderItemId);
-    void checkoutOrder(long orderId);
+    List<OrderItemResponse> removeOrderedItem(long orderItemId);
+    List<OrderItemResponse> checkoutOrder(long orderId);
     List<OrderItemResponse> orderItemResponse(long orderId);
 }

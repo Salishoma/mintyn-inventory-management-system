@@ -2,11 +2,15 @@ package org.mintyn.sales.inventory.salesinventory.dto.requestdto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class CreateProductRequest {
 
     @NotBlank(message = "Product should have a name")

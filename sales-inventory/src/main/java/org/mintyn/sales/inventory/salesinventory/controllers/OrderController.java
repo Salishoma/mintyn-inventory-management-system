@@ -41,10 +41,10 @@ public class OrderController {
             consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE},
             produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE}
     )
-    public ResponseEntity<OrderItemResponse> removeOrderedIem(
+    public ResponseEntity<List<OrderItemResponse>> removeOrderedIem(
             @PathVariable final long orderItemId
     ) {
-        return ResponseEntity.ok(orderService.removeOrderedIem(orderItemId));
+        return ResponseEntity.ok(orderService.removeOrderedItem(orderItemId));
     }
 
     @RequestMapping(
@@ -52,11 +52,10 @@ public class OrderController {
             consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE},
             produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE}
     )
-    public ResponseEntity<?> checkoutOrderAndPublish(
+    public ResponseEntity<List<OrderItemResponse>> checkoutOrderAndPublish(
             @PathVariable final long orderId
     ) {
-        orderService.checkoutOrder(orderId);
-        return ResponseEntity.noContent().build();
+        return  ResponseEntity.ok(orderService.checkoutOrder(orderId));
     }
 
     @RequestMapping(
