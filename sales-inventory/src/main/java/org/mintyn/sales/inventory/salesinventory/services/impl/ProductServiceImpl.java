@@ -3,6 +3,7 @@ package org.mintyn.sales.inventory.salesinventory.services.impl;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.mintyn.inventory.response.exception.ApiResourceNotFoundException;
 import org.mintyn.sales.inventory.salesinventory.dto.requestdto.CreateProductRequest;
@@ -19,6 +20,7 @@ import java.util.List;
 
 @AllArgsConstructor
 @Service
+@Transactional
 public class ProductServiceImpl implements ProductService {
     private final ProductRepository productRepository;
     private final MapstructMapper mapper;

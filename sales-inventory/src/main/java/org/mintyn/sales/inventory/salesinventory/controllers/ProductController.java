@@ -1,5 +1,7 @@
 package org.mintyn.sales.inventory.salesinventory.controllers;
 
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.mintyn.sales.inventory.salesinventory.dto.requestdto.CreateProductRequest;
@@ -16,6 +18,11 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/products")
+@ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Request was successful"),
+        @ApiResponse(responseCode = "400", description = "This is a bad request, please follow the API documentation for the proper request format."),
+        @ApiResponse(responseCode = "500", description = "The server is down, please make sure that the Application is running")
+})
 public class ProductController {
 
     private final ProductService productService;

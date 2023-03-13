@@ -4,9 +4,10 @@ import org.mintyn.inventory.response.model.OrderResponse;
 import org.mintyn.order.report.dtos.OrderReportResponse;
 
 import java.time.LocalDate;
+import java.util.List;
 
 public interface OrderReportService {
 
-    void saveOrderReport(OrderResponse orderResponse);
-    OrderReportResponse getOrderReport(LocalDate from, LocalDate to);
+    void saveOrderReport(List<OrderResponse> orderResponseList);
+    OrderReportResponse generateOrderReport(LocalDate from, LocalDate to);
 }

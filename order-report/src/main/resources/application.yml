@@ -3,13 +3,16 @@ spring:
     url: jdbc:postgresql://localhost:5432/reports
     password:
     username: oma
-    jpa:
-      hibernate:
-        ddl-auto: create
-      properties:
-        hibernate: org.hibernate.dialect.PostgreSQLDialect
-      database: postgresql
+  jpa:
+    hibernate:
+      ddl-auto: create
+    properties:
+      hibernate: org.hibernate.dialect.PostgreSQLDialect
+    database: postgresql
   kafka:
     bootstrap-servers: localhost:9092
     consumer:
       group-id: mintyn
+  mvc:
+    pathmatch:
+      matching-strategy: ANT_PATH_MATCHER

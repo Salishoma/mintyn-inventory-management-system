@@ -1,7 +1,8 @@
 package org.mintyn.order.report.controllers;
 
-
 import com.fasterxml.jackson.annotation.JsonFormat;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.mintyn.order.report.dtos.OrderReportResponse;
 import org.mintyn.order.report.services.OrderReportService;
@@ -18,6 +19,11 @@ import java.time.LocalDate;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/reports")
+@ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Request was successful"),
+        @ApiResponse(responseCode = "400", description = "This is a bad request, please follow the API documentation for the proper request format."),
+        @ApiResponse(responseCode = "500", description = "The server is down, please make sure that the Application is running")
+})
 public class OrderReportController {
     private final OrderReportService orderReportService;
 
@@ -28,6 +34,6 @@ public class OrderReportController {
                                                               @DateTimeFormat(pattern = "dd-MM-yyyy")
                                             @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy")
                                             @PathVariable final LocalDate to){
-        return new ResponseEntity<>(orderReportService.getOrderReport(from, to), HttpStatus.OK);
+        return new ResponseEntity<>(orderReportService.generateOrderReport(from, to), HttpStatus.OK);
     }
 }

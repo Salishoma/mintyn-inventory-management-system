@@ -1,17 +1,18 @@
 package org.mintyn.sales.inventory.salesinventory.dto.responsedto;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.RequiredArgsConstructor;
+import lombok.NoArgsConstructor;
 import org.mintyn.sales.inventory.salesinventory.enums.OrderStatus;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Data
-@RequiredArgsConstructor
+@NoArgsConstructor
+@AllArgsConstructor
 public class OrderItemResponse {
 
-    private Long id;
     private String productName;
     private BigDecimal productPrice;
     private BigDecimal totalProductPrice;

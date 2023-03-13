@@ -3,9 +3,12 @@ package org.mintyn.sales.inventory.salesinventory.services.impl;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.kafka.clients.producer.RecordMetadata;
 import org.mintyn.inventory.response.exception.ApiBadRequestException;
 import org.mintyn.inventory.response.exception.ApiResourceNotFoundException;
 import org.mintyn.inventory.response.model.OrderResponse;
@@ -19,29 +22,35 @@ import org.mintyn.sales.inventory.salesinventory.entities.Product;
 import org.mintyn.sales.inventory.salesinventory.repositories.OrderRepository;
 import org.mintyn.sales.inventory.salesinventory.repositories.ProductRepository;
 import org.mintyn.sales.inventory.salesinventory.services.OrderService;
+import org.mintyn.sales.inventory.salesinventory.utils.MapstructMapper;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 @AllArgsConstructor
 @Service
+@Slf4j
+@Transactional
 public class OrderServiceImpl implements OrderService {
 
     private final ProductRepository productRepository;
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
     private final KafkaTemplate<String, List<OrderResponse>> kafkaTemplate;
+    private final MapstructMapper mapper;
 
     @PersistenceContext
     EntityManager entityManager;
 
     @Override
-    public OrderItemResponse orderProduct(long productId, OrderRequest request) {
+    public OrderItemResponse orderProduct(final long productId, final OrderRequest request) {
         int quantityOrdered = request.getQuantity();
         if (quantityOrdered <= 0) {
             throw new ApiBadRequestException("Product quantity ordered can not be less than 1");
@@ -89,8 +98,6 @@ public class OrderServiceImpl implements OrderService {
                 .totalProductPrice(totalCost)
                 .build();
 
-//        OrderItem savedItem = orderItemRepository.save(orderItem);
-
         List<OrderItem> items = order.getItems();
         if (items == null) {
             items = new ArrayList<>();
@@ -99,11 +106,17 @@ public class OrderServiceImpl implements OrderService {
         order.setItems(items);
         orderRepository.save(order);
 
-        return null;
+        return response(orderItem);
+    }
+
+    private OrderItemResponse response(final OrderItem orderItem) {
+        OrderItemResponse response = mapper.createResponseFromOrderItem(orderItem);
+        response.setProductName(orderItem.getProduct().getProductName());
+        return response;
     }
 
     @Override
-    public OrderItemResponse removeOrderedIem(long orderItemId) {
+    public OrderItemResponse removeOrderedIem(final long orderItemId) {
         TypedQuery<OrderItem> query = entityManager.createQuery("SELECT o FROM OrderItem o " +
                 "where o.id = :orderId and o.status = :status", OrderItem.class);
 
@@ -128,7 +141,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public  void checkoutOrder(long orderId) {
+    public  void checkoutOrder(final long orderId) {
         TypedQuery<OrderItem> query = entityManager.createQuery("SELECT o FROM OrderItem o " +
                 "where o.order.id = :orderId and o.status = :status", OrderItem.class);
 
@@ -155,11 +168,11 @@ public class OrderServiceImpl implements OrderService {
                                 .orderCreatedDate(orderItem.getCreatedAt())
                                 .build()).collect(Collectors.toList());
 
-        System.out.println("======>In checkout");
         OrderResponse response = new OrderResponse();
         response.setOrderId(String.valueOf(orderId));
 
-        kafkaTemplate.send("orderReport", responses);
+        sendOrderReport(responses);
+//        kafkaTemplate.send("orderReport", responses);
         List<OrderItem> updated = items.stream()
                 .peek(orderItem -> {
                     orderItem.setStatus(OrderStatus.COMPLETE);
@@ -168,5 +181,33 @@ public class OrderServiceImpl implements OrderService {
                 .collect(Collectors.toList());
         order.setItems(updated);
         orderRepository.save(order);
+    }
+
+    @Override
+    public List<OrderItemResponse> orderItemResponse(final long orderId) {
+        TypedQuery<OrderItemResponse> query = entityManager.createQuery("SELECT new org.mintyn.sales.inventory.salesinventory.dto" +
+                ".responsedto.OrderItemResponse" +
+                        "(o.id, o.product.productName, o.productPrice, o.totalProductPrice, o.orderQuantity, o.createdAt," +
+                        " o.status) from OrderItem o where o.status=:status", OrderItemResponse.class);
+        query.setParameter("status", OrderStatus.PENDING);
+        return query.getResultList();
+    }
+
+    private void sendOrderReport(List<OrderResponse> orderResponseList) {
+
+        CompletableFuture<SendResult<String, List<OrderResponse>>> completableFuture =
+                kafkaTemplate.send("orderReport", orderResponseList);
+
+        completableFuture.whenComplete((result, ex) -> {
+            if (ex != null) {
+                throw new ApiBadRequestException("Incomplete order");
+            } else {
+
+                RecordMetadata metadata = result.getRecordMetadata();
+                log.info("topic: {}, partition: {}, offset: {}, timestamp: {}, key: {}, value: {}",
+                        metadata.topic(), metadata.partition(), metadata.hasOffset(),
+                        metadata.hasTimestamp(), metadata.serializedKeySize(), metadata.serializedValueSize());
+            }
+        });
     }
 }

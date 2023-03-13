@@ -1,8 +1,9 @@
 package org.mintyn.order.report.kafka;
 
+import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
-import org.apache.kafka.common.serialization.StringSerializer;
 import org.mintyn.inventory.response.model.OrderResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -42,7 +43,10 @@ public class KafkaConsumerConfig {
 
     @Bean
     public ConsumerFactory<String, List<OrderResponse>> consumerFactory() {
-        return new DefaultKafkaConsumerFactory<>(consumerConfig());
+        ObjectMapper om = new ObjectMapper();
+        JavaType type = om.getTypeFactory().constructParametricType(List.class, OrderResponse.class);
+        return new DefaultKafkaConsumerFactory<>(consumerConfig(), new StringDeserializer(),
+                new JsonDeserializer<>(type, false));
     }
 
     @Bean("orderReportListenerContainerFactory")
