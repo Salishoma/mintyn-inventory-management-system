@@ -1,55 +1,37 @@
 package org.mintyn.order.report.config;
 
+import io.swagger.v3.oas.models.ExternalDocumentation;
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.info.Info;
+import org.springdoc.core.models.GroupedOpenApi;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-import springfox.documentation.builders.PathSelectors;
-import springfox.documentation.builders.RequestHandlerSelectors;
-import springfox.documentation.service.*;
-import springfox.documentation.spi.DocumentationType;
-import springfox.documentation.spring.web.plugins.Docket;
-import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
-import java.util.Collections;
+@Configuration
+public class SwaggerConfig {
 
-@EnableSwagger2
-class SwaggerConfig implements WebMvcConfigurer {
-// WEBSITE IS - http://localhost:8881/swagger-ui/
+    /*
+  Link to swagger api: http://localhost:8080/swagger-ui/index.html
+  * */
+    @Bean
+    public OpenAPI openApi() {
+        return new OpenAPI()
+                .info(
+                        new Info()
+                                .title("Order Report App")
+                                .description("API for Order Report Application")
+                                .version("1.0-SNAPSHOT"))
+            .externalDocs(
+                new ExternalDocumentation()
+                        .description("Github link")
+                        .url("https://github.com/Salishoma/mintyn-inventory-management-system"));
+    }
 
     @Bean
-    public Docket swaggerConfig() {
-        //Return a prepared Docket Instance
-        return new Docket(DocumentationType.SWAGGER_2)
-                .apiInfo(orderReportsInfo())
-                .useDefaultResponseMessages(false)
-                .select()
-                .apis(RequestHandlerSelectors.basePackage("org.mintyn.order.report"))
-                .paths(PathSelectors.any())
+    public GroupedOpenApi reportApi() {
+        return GroupedOpenApi.builder()
+                .group("Order Report")
+                .pathsToMatch("/api/v1/reports/**")
                 .build();
     }
-
-    @Override
-    public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        registry
-                .addResourceHandler("swagger-ui/")
-                .addResourceLocations("classpath:/META-INF/resources/");
-        registry
-                .addResourceHandler("/webjars/**")
-                .addResourceLocations("classpath:/META-INF/resources/webjars/");
-    }
-
-    private ApiInfo orderReportsInfo() {
-        return new ApiInfo(
-                "Order Report App",
-                "API for Order Report Application",
-                "1.0-SNAPSHOT",
-                "Open source",
-                new Contact("Mintyn", "", "hr@mintyn.com"),
-                "API License",
-                "",
-                Collections.emptyList()
-        );
-    }
-
 }

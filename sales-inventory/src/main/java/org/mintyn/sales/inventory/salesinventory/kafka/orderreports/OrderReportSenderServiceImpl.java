@@ -1,5 +1,6 @@
 package org.mintyn.sales.inventory.salesinventory.kafka.orderreports;
 
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.RecordMetadata;
@@ -8,6 +9,8 @@ import org.mintyn.inventory.response.model.OrderResponse;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
+import org.springframework.util.concurrent.ListenableFuture;
+import org.springframework.util.concurrent.ListenableFutureCallback;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -29,9 +32,12 @@ public class OrderReportSenderServiceImpl implements OrderReportSenderService {
             } else {
 
                 RecordMetadata metadata = result.getRecordMetadata();
-                log.info("topic: {}, partition: {}, offset: {}, timestamp: {}, key: {}, value: {}",
-                        metadata.topic(), metadata.partition(), metadata.hasOffset(),
-                        metadata.hasTimestamp(), metadata.serializedKeySize(), metadata.serializedValueSize());
+                log.debug("Received new metadata. Topic: {}; Partition {}; Offset {}; Timestamp {}, at time {}",
+                        metadata.topic(),
+                        metadata.partition(),
+                        metadata.offset(),
+                        metadata.timestamp(),
+                        System.nanoTime());
             }
         });
     }
